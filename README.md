@@ -1,96 +1,86 @@
-Personal Task Management API (Java Spring Boot)
-Overview
+# Personal Task Management API (Java Spring Boot)
 
-This is a backend API for a personal task management application that supports offline-first functionality. Users can create, update, delete tasks while offline, and sync changes when they reconnect. This project is implemented in Java Spring Boot with SQLite as the database.
+## **Overview**
+This is a backend API for a personal task management application that supports offline-first functionality. Users can create, update, delete tasks while offline, and sync changes when they reconnect. This project is implemented in **Java Spring Boot** with **SQLite** as the database.
 
-Tech Stack
+---
 
-Backend: Java 17, Spring Boot 3
+## **Tech Stack**
+- **Backend:** Java 17, Spring Boot 3  
+- **Database:** SQLite  
+- **JSON Processing:** Jackson  
+- **Version Control:** Git + GitHub  
+- **Build Tool:** Maven  
 
-Database: SQLite
+---
 
-JSON Processing: Jackson
+## **Project Features**
 
-Version Control: Git + GitHub
+1. **Task Management Endpoints**  
+   - **GET /api/tasks** – Get all non-deleted tasks  
+   - **GET /api/tasks/{id}** – Get a specific task  
+   - **POST /api/tasks** – Create a new task  
+   - **PUT /api/tasks/{id}** – Update a task  
+   - **DELETE /api/tasks/{id}** – Soft delete a task  
 
-Build Tool: Maven
+2. **Offline Sync**  
+   - Tasks created, updated, or deleted while offline are queued in a **SyncQueue**.  
+   - Sync uses a **last-write-wins** strategy based on `updatedAt`.  
+   - Sync queue supports **batch processing** with a configurable batch size (`50` by default).  
+   - Failed sync operations are retried up to 3 times.  
 
-Project Features
+3. **Sync API Endpoints**  
+   - **POST /api/sync** – Trigger sync for all pending items  
+   - **GET /api/status** – Check sync status and pending queue count  
+   - **POST /api/batch** – Batch sync for server processing  
 
-Task Management Endpoints
+4. **Health Check**  
+   - **GET /api/health** – Check server status  
 
-GET /api/tasks – Get all non-deleted tasks
+---
 
-GET /api/tasks/{id} – Get a specific task
+## **Data Model**
 
-POST /api/tasks – Create a new task
+**Task Entity**
 
-PUT /api/tasks/{id} – Update a task
+| Field           | Type       | Description                                   |
+|-----------------|------------|-----------------------------------------------|
+| id              | String     | Unique UUID                                   |
+| title           | String     | Task title (required)                         |
+| description     | String     | Optional task description                     |
+| completed       | boolean    | Task completion status                        |
+| createdAt       | LocalDateTime | Task creation timestamp                    |
+| updatedAt       | LocalDateTime | Last update timestamp                      |
+| isDeleted       | boolean    | Soft delete flag                              |
+| syncStatus      | String     |pending/synced/error                           |
+| serverId        | String     | Server-assigned ID after sync                 |
+| lastSyncedAt    | LocalDateTime | Last successful sync timestamp             |
 
-DELETE /api/tasks/{id} – Soft delete a task
+**SyncQueue Entity**
 
-Offline Sync
+| Field          | Type       | Description                       |
+|----------------|------------|-----------------------------------|
+| id             | Long       | Auto-generated ID                 |
+| taskId         | String     | ID of the task being synced       |
+| operationType  | String     | `create` / `update` / `delete`    |
+| taskData       | String     | JSON snapshot of the task         |
+| retryAttempts  | int        | Number of retry attempts          |
+| status         | String     | `pending` / `error`               |
+| createdAt      | LocalDateTime | Timestamp when added to queue  |
 
-Tasks created, updated, or deleted while offline are queued in a SyncQueue.
+---
 
-Sync uses a last-write-wins strategy based on updatedAt.
+## **Request & Response Examples**
 
-Sync queue supports batch processing with a configurable batch size (50 by default).
-
-Failed sync operations are retried up to 3 times.
-
-Sync API Endpoints
-
-POST /api/sync – Trigger sync for all pending items
-
-GET /api/status – Check sync status and pending queue count
-
-POST /api/batch – Batch sync for server processing
-
-Health Check
-
-GET /api/health – Check server status
-
-Data Model
-
-Task Entity
-
-Field	Type	Description
-id	String	Unique UUID
-title	String	Task title (required)
-description	String	Optional task description
-completed	boolean	Task completion status
-createdAt	LocalDateTime	Task creation timestamp
-updatedAt	LocalDateTime	Last update timestamp
-isDeleted	boolean	Soft delete flag
-syncStatus	String	pending / synced / error
-serverId	String	Server-assigned ID after sync
-lastSyncedAt	LocalDateTime	Last successful sync timestamp
-
-SyncQueue Entity
-
-Field	Type	Description
-id	Long	Auto-generated ID
-taskId	String	ID of the task being synced
-operationType	String	create / update / delete
-taskData	String	JSON snapshot of the task
-retryAttempts	int	Number of retry attempts
-status	String	pending / error
-createdAt	LocalDateTime	Timestamp when added to queue
-Request & Response Examples
-1. Create Task
-
-Request:
-
+### **1. Create Task**
+**Request:**
+json
 POST /api/tasks
 {
   "title": "New task",
   "description": "Optional description"
 }
-
-
 Response (201):
-
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "New task",
@@ -103,13 +93,11 @@ Response (201):
   "serverId": null,
   "lastSyncedAt": null
 }
-
 2. Get All Tasks
 
 Request:
 
 GET /api/tasks
-
 
 Response:
 
@@ -127,21 +115,16 @@ Response:
     "lastSyncedAt": null
   }
 ]
-
 3. Update Task
 
 Request:
-
 PUT /api/tasks/550e8400-e29b-41d4-a716-446655440000
 {
   "title": "Updated task",
   "description": "Updated description",
   "completed": true
 }
-
-
 Response:
-
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "Updated task",
@@ -154,7 +137,6 @@ Response:
   "serverId": null,
   "lastSyncedAt": null
 }
-
 4. Delete Task
 
 Request:
