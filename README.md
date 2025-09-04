@@ -7,7 +7,7 @@ This is a backend API for a personal task management application that supports o
 
 ## **Tech Stack**
 - **Backend:** Java 17, Spring Boot 3  
-- **Database:** SQLite  
+- **Database:** H2 Datbase  
 - **JSON Processing:** Jackson  
 - **Version Control:** Git + GitHub  
 - **Build Tool:** Maven  
